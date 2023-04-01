@@ -22,19 +22,23 @@ const server = http.createServer((req, res) => {
 
     let filename = '404.html';
     switch (q.pathname) {
-        case 'favicon.ico':
+        case '/favicon.ico':
             filename = 'favicon.ico';
             break;
-        case 'index':
-        case 'index.html':
+        case '/index':
+        case '/index.html':
         case '/':
         case '':
             filename = 'index.html';
             break;
-        case 'client.css':
+        case '/settings':
+        case '/settings.html':
+            filename = 'settings.html';
+            break;
+        case '/client.css':
             filename = 'client.css';
             break;
-        case 'client.js':
+        case '/client.js':
             filename = 'client.js';
     }
 
@@ -66,3 +70,6 @@ const server = http.createServer((req, res) => {
         return res.end();
     });
 });
+
+server.listen(8844);
+console.log('Server listening on port 8844. Available at http://localhost:8844/');

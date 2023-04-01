@@ -1,0 +1,36 @@
+:root {
+    --green: #98ad99;
+    --red: #9D181D;
+    --white: #f5f3f1;
+    --whiteHover: #e2dfdc;
+    --black: #342D27;
+    --tan: #E3D6B2;
+    --navy: #1f3855;
+}
+
+body {
+    background-color: var(--green);
+    padding-top:4rem;
+    font-family: hack;
+}
+
+h2 {
+    font-weight: bold;
+}
+
+.main {
+    background-color: var(--white);
+    border-radius: 25px;
+    padding: 20px;
+}
+
+.inline {
+    display: inline-block;
+}
+
+.left-align {
+    text-align: left;
+}
+.center-align {
+    text-align: center;
+}
