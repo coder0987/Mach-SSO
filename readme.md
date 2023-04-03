@@ -8,6 +8,22 @@ Note that Mach SSO can be used for applications besides MachTarok, but it was bu
 
 Mach SSO is currently under active development and cannot be used at all
 
+1. Install MariaDB
+2. Create a MariaDB database and user
+```
+mariadb -p -u root
+CREATE DATABASE mach-sso;
+USE mach-sso;
+CREATE TABLE auth (
+username VARCHAR(20) PRIMARY KEY, 
+password VARCHAR(50),
+salt CHAR(),
+publisher_id INT,
+year_pub CHAR(4),
+description TEXT );
+CREATE USER MachSSO@mach-sso IDENTIFIED BY 'p@sSw0rD';
+```
+
 ### How It Works
 
 Mach SSO creates a MariaDB instance and stores usernames and hashed passwords (with salt) in it

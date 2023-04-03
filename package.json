@@ -1,8 +1,10 @@
 {
   "dependencies": {
+    "argon2": "^0.30.3",
     "express": "^4.18.2",
     "fs": "^0.0.1-security",
     "http": "^0.0.1-security",
+    "mariadb": "^3.1.1",
     "path": "^0.12.7",
     "url": "^0.11.0"
   }
