@@ -60,6 +60,11 @@ function postLogin(req, res) {
     });
 }
 
+function postSignup(req, res) {
+    res.writeHead(403);
+    return res.end();
+}
+
 const server = http.createServer((req, res) => {
     let q = url.parse(req.url, true);
     if (req.method == 'GET') {
@@ -127,6 +132,8 @@ const server = http.createServer((req, res) => {
     } else if (req.method == 'POST') {
         if (q.pathname == '/login') {
             return postLogin(req, res);
+        } else if (q.pathname == '/signup') {
+            return postSignup(req, res);
         }
     }
 });
