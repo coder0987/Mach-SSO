@@ -14,6 +14,12 @@ app.use(parser.json);//For processing JSON POST calls
 
 const PASSWORD = process.argv[2];
 
+const limiter = [];
+const RESERVED = {
+    'guest': true,
+    'admin': true
+};
+
 if (!PASSWORD) {
     throw 'No password was given';
 }
@@ -21,6 +27,7 @@ if (!PASSWORD) {
 const pool = mariadb.createPool({
      //Host: localhost, port: 3306
      user:'MachSSO',
+     database: 'machsso',
      password: PASSWORD,
      connectionLimit: 5
 });
@@ -38,20 +45,29 @@ function postLogin(req, res) {
         res.writeHead(403);
         return res.end();
     }
+    let username, password;
+    try {
+        const base64Credentials = req.headers.authorization.split(' ')[1];
+        const credentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
+        [username, password] = credentials.split(':');
+        if (username.length == 0 || username.length > 64 || password.length < 12 || password.length > 64) {
+            throw "Username or password length incorrect";
+        }
 
-    const base64Credentials = req.headers.authorization.split(' ')[1];
-    const credentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
-    const [username, password] = credentials.split(':');
+    } catch (err) {
+        console.log('Missing or corrupted credentials');
+        res.writeHead(403);
+        return res.end();
+    }
     //Someone is trying to log in
     //Username: must be an alphanumeric string of 5-64 characters, - and _ allowed
     //Password: must be 12-64 characters
-    //OTP: must be a 6-digit number
-
-    console.log('Login attempt: ' + username);
+    //OTP: must be a 6-digit number or null
     signIn(username, password).then((token) => {
         //Success
         console.log('Token successfully created: ' + token);
-        res.writeHead(200, token);
+        res.writeHead(200);
+        res.write(token);
         return res.end();
     }).catch((err) => {
         //Failure
@@ -61,12 +77,75 @@ function postLogin(req, res) {
 }
 
 function postSignup(req, res) {
-    res.writeHead(403);
-    return res.end();
+    if(!req.headers.authorization) {
+        console.log('Sent request without username or password');
+        res.writeHead(403);
+        return res.end();
+    }
+    let username, password;
+    try {
+        const base64Credentials = req.headers.authorization.split(' ')[1];
+        const credentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
+        [username, password] = credentials.split(':');
+        if (username.length == 0 || username.length > 64 || password.length < 12 || password.length > 64) {
+            throw "Username or password length incorrect";
+        }
+
+    } catch (err) {
+        console.log('Missing or corrupted credentials');
+        res.writeHead(403);
+        return res.end();
+    }
+    createUser(username, password).then((token) => {
+        //Success
+        console.log('Account and token successfully created: ' + token);
+        res.writeHead(200);
+        res.write(token);
+        return res.end();
+    }).catch((err) => {
+        //Failure
+        console.log(err);
+        res.writeHead(403);
+        return res.end();
+    });
+}
+
+function verifyUser(req, res) {
+    if(!req.headers.authorization) {
+        console.log('Sent request without username or password');
+        res.writeHead(403);
+        return res.end();
+    }
+    let username, token;
+    try {
+        [username, token] = req.headers.authorization.split(':');
+        if (username.length == 0 || username.length > 64 || !token) {
+            throw "Username or password length incorrect";
+        }
+    } catch (err) {
+        console.log('Missing or corrupted credentials');
+        res.writeHead(403);
+        return res.end();
+    }
+    if (ACTIVE_USERS[username] && ACTIVE_USERS[username].token == token) {
+        console.log('User verified: ' + username);
+        res.writeHead(200);
+        return res.end();
+    } else {
+        console.log('Incorrect username/token combination: ' + username + '\n' + token);
+        res.writeHead(403);
+        return res.end();
+    }
 }
 
 const server = http.createServer((req, res) => {
     let q = url.parse(req.url, true);
+    if (req.headers['x-forwarded-proto'] != 'https') {
+        res.writeHead(400);
+        res.write('Insecure connection detected. Use https.\n');
+        res.end('400 Unsupported Protocol');
+    }
+
     if (req.method == 'GET') {
 
         /*Ignore all arbitrary file requests. The only files returned are:
@@ -90,6 +169,12 @@ const server = http.createServer((req, res) => {
             case '/':
             case '':
                 filename = 'index.html';
+                break;
+            case '/sign-up':
+            case '/signup':
+            case '/sign-up.html':
+            case '/signup.html':
+                filename = 'sign-up.html';
                 break;
             case '/settings':
             case '/settings.html':
@@ -130,37 +215,34 @@ const server = http.createServer((req, res) => {
             return res.end();
         });
     } else if (req.method == 'POST') {
+        if (q.pathname == '/verify') {
+            return verifyUser(req, res);
+        }
+        if (limiter[req.headers['x-forwarded-for']] && limiter[req.headers['x-forwarded-for']] > Date.now()) {
+            res.writeHead(429);
+            res.write('429 Too many requests');
+            return res.end();
+        }
+        limiter[req.headers['x-forwarded-for']] = Date.now() + 5000;
+        //Must wait 5 seconds after each login attempt
         if (q.pathname == '/login') {
             return postLogin(req, res);
         } else if (q.pathname == '/signup') {
+            limiter[req.headers['x-forwarded-for']] = Date.now() + 60000;
+            //Must wait a minute after each account creation
             return postSignup(req, res);
         }
     }
 });
 
-
-
-//MariaDB interface functions
-
-async function asyncFunction() {
-    let conn;
-    try {
-        conn = await pool.getConnection();
-        const rows = await conn.query("SELECT 1 as val");
-        console.log(rows); //[ {val: 1}, meta: ... ]
-        const res = await conn.query("INSERT INTO myTable value (?, ?)", [1, "mariadb"]);
-        console.log(res); // { affectedRows: 1, insertId: 1, warningStatus: 0 }
-    } catch (err) {
-        throw err;
-    } finally {
-        if (conn) return conn.end();
-    }
-}
-
 async function createUser(username, password) {
-    password = String.prototype.normalize(password);
+    password = password.normalize();
+    username = username.toLowerCase();
     if (password.length < 12) {
-        return null;//Reject short passwords
+        throw "Short password";
+    }
+    if (RESERVED[username]) {
+        throw "Attempted to use a reserved name";
     }
 
     //The salt is built-in to argon2
@@ -171,23 +253,44 @@ async function createUser(username, password) {
         timeCost: 3,
         parallelism: 1
     });
-    //TODO Verify that no other accounts exist with the same name
 
-    //TODO Send user to MariaDB
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        let usernameCheck = await conn.query("SELECT * FROM auth WHERE username = ?", username);
+        if (usernameCheck.length > 0) {
+            throw "User already exists";
+        }
+        await conn.query("INSERT INTO auth (username, password) VALUES (?, ?)", [username, hash]);
+    } catch (err) {
+        throw err;
+    } finally {
+        if (conn) conn.end();
+    }
 
     //Create a session token
     return signIn(username, password);
 }
 
 async function signIn(username, password, OTP) {
-    throw "Temporary reject all ERROR";//TEMPORARY. TODO: implement actually auth
-    password = String.prototype.normalize(password);
-    //TODO Get username info from MariaDB
-    mdb = {pass:'thepass', username: 'thename', otp:123456}
-    if (await argon2.verify(mdb.pass, password)) {
+    password = password.normalize();
+    username = username.toLowerCase();
+    let infoFromDatabase;
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        infoFromDatabase = await conn.query("SELECT password FROM auth WHERE username = ?", username);
+    } catch (err) {
+        throw err;
+    } finally {
+        if (conn) conn.end();
+    }
+
+    if (await argon2.verify(infoFromDatabase[0].password, password)) {
         //Password match. Create a session token for the user
-        let sessionId = crypto.randomBytes(128);
-        ACTIVE_USERS[sessionId] = new User(username, sessionId);
+        let sessionId = crypto.randomBytes(128).toString('hex');
+        ACTIVE_USERS[username] = new User(username, sessionId);
+        return sessionId;
     } else {
         // password did not match
         console.log('Mismatch username and password: ' + username);

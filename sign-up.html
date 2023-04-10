@@ -25,12 +25,17 @@
         </div>
         <div class="col-xs-1 col-md-3 col-lg"></div>
         <div class="col-xs-10 col-md-6 col-lg center-align">
-            <form class="main inline">
+            <form class="main inline" onsubmit="signup(); return false">
                 <label for="username">Username</label><br>
                 <input type="text" id="username"><br>
-                <label for="password">Verify Password</label><br>
+                <label for="password">Password</label><br>
                 <input type="password" id="password"><br>
-                <input type="button" value="Sign Up">
+                <label for="passwordVerify">Verify Password</label><br>
+                <input type="password" id="passwordVerify"><br>
+                <input type="submit" value="Sign Up">
+                <div id="login_status_div">
+                    <span id="login_status" class="text"></span>
+                </div>
             </form>
         </div>
         <div class="col-xs-1 col-md-3 col-lg"></div>

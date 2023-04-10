@@ -12,18 +12,21 @@ Mach SSO is currently under active development and cannot be used at all
 2. Create a MariaDB database and user
 ```
 mariadb -p -u root
-CREATE DATABASE mach-sso;
-USE mach-sso;
+CREATE DATABASE machsso;
+USE machsso;
 CREATE TABLE auth (
-username VARCHAR(20) PRIMARY KEY, 
-password VARCHAR(50),
-salt CHAR(),
-publisher_id INT,
-year_pub CHAR(4),
-description TEXT );
-CREATE USER MachSSO@mach-sso IDENTIFIED BY 'p@sSw0rD';
+id MEDIUMINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+username TEXT NOT NULL,
+password TEXT NOT NULL);
+CREATE USER 'MachSSO'@'localhost' IDENTIFIED BY 'p@sSw0rD';
 ```
-
+3. Set the new user's permissions to be as limited as possible
+```
+REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'MachSSO'@'localhost';
+GRANT SELECT ON auth TO 'MachSSO'@'localhost';
+GRANT INSERT ON auth TO 'MachSSO'@'localhost';
+exit;
+```
 ### How It Works
 
 Mach SSO creates a MariaDB instance and stores usernames and hashed passwords (with salt) in it
