@@ -25,9 +25,9 @@ GRANT SELECT ON auth TO 'MachSSO'@'localhost';
 GRANT INSERT ON auth TO 'MachSSO'@'localhost';
 exit;
 ```
-4. Run the server p@sSw0rD
+4. Run the server
 ```
-node _server.js 
+node _server.js p@sSw0rD
 ```
 5. Connect a reverse proxy and enable HTTPS (Apache, NGinx, BoringProxy, etc.)
 This final step is necessary as MachSSO automatically rejects all HTTP requests
