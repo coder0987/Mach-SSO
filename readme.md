@@ -6,8 +6,6 @@ Note that Mach SSO can be used for applications besides MachTarok, but it was bu
 
 ### Usage
 
-Mach SSO is currently under active development and cannot be used at all
-
 1. Install MariaDB
 2. Create a MariaDB database and user
 ```
@@ -27,6 +25,13 @@ GRANT SELECT ON auth TO 'MachSSO'@'localhost';
 GRANT INSERT ON auth TO 'MachSSO'@'localhost';
 exit;
 ```
+4. Run the server p@sSw0rD
+```
+node _server.js 
+```
+5. Connect a reverse proxy and enable HTTPS (Apache, NGinx, BoringProxy, etc.)
+This final step is necessary as MachSSO automatically rejects all HTTP requests
+
 ### How It Works
 
 Mach SSO creates a MariaDB instance and stores usernames and hashed passwords (with salt) in it
