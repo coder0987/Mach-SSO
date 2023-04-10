@@ -1,7 +1,7 @@
 let locked = false;
 let userNameToken;
 //Replace machtarok.com with your trusted website when self hosting
-const VALID_OPENERS = {'https://machtarok.com': true}
+const VALID_OPENERS = {'https://machtarok.com/': true}
 
 
 function reqListener() {
@@ -38,6 +38,8 @@ function setStatus(to,reason) {
                 ls.innerHTML += ' Redirecting...';
                 window.opener.postMessage(userNameToken, redirect);
                 window.close();
+            } else if (redirect) {
+                console.log(redirect + ' is not a valid opener');
             }
             break;
         case 'inform':
