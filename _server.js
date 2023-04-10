@@ -17,7 +17,13 @@ const PASSWORD = process.argv[2];
 const limiter = [];
 const RESERVED = {
     'guest': true,
-    'admin': true
+    'admin': true,
+    'prever': true,
+    'valat': true,
+    'contra': true,
+    'povenost': true,
+    'the': true,
+    'a': true
 };
 
 if (!PASSWORD) {
@@ -36,7 +42,7 @@ const ACTIVE_USERS = {};
 function User(username, token) {
     this.username = username;
     this.token = token;
-    this.time = Date.now();
+    this.timeout = setTimeout(logout,30*60*1000,this.username);//Logout after 30 minutes of inactivity
 }
 
 function postLogin(req, res) {
@@ -98,7 +104,7 @@ function postSignup(req, res) {
     }
     createUser(username, password).then((token) => {
         //Success
-        console.log('Account and token successfully created: ' + token);
+        console.log('Account and token successfully created: ' + username + '\n' + token);
         res.writeHead(200);
         res.write(token);
         return res.end();
@@ -129,6 +135,8 @@ function verifyUser(req, res) {
     }
     if (ACTIVE_USERS[username] && ACTIVE_USERS[username].token == token) {
         console.log('User verified: ' + username);
+        clearTimeout(ACTIVE_USERS[username].timeout)
+        ACTIVE_USERS[username].timeout = setTimeout(logout,30*60*1000,username);
         res.writeHead(200);
         return res.end();
     } else {
@@ -228,7 +236,7 @@ const server = http.createServer((req, res) => {
         if (q.pathname == '/login') {
             return postLogin(req, res);
         } else if (q.pathname == '/signup') {
-            limiter[req.headers['x-forwarded-for']] = Date.now() + 60000;
+            limiter[req.headers['x-forwarded-for']] = Date.now() + 10000;
             //Must wait a minute after each account creation
             return postSignup(req, res);
         }
@@ -240,6 +248,9 @@ async function createUser(username, password) {
     username = username.toLowerCase();
     if (password.length < 12) {
         throw "Short password";
+    }
+    if (/\s/.test(username)) {
+        throw "Username contains whitespace";
     }
     if (RESERVED[username]) {
         throw "Attempted to use a reserved name";
@@ -257,7 +268,7 @@ async function createUser(username, password) {
     let conn;
     try {
         conn = await pool.getConnection();
-        let usernameCheck = await conn.query("SELECT * FROM auth WHERE username = ?", username);
+        let usernameCheck = await conn.query("SELECT id FROM auth WHERE username = ?", username);
         if (usernameCheck.length > 0) {
             throw "User already exists";
         }
@@ -275,6 +286,9 @@ async function createUser(username, password) {
 async function signIn(username, password, OTP) {
     password = password.normalize();
     username = username.toLowerCase();
+    if (/\s/.test(username)) {
+        throw "Username contains whitespace";
+    }
     let infoFromDatabase;
     let conn;
     try {
@@ -297,6 +311,10 @@ async function signIn(username, password, OTP) {
         //DO NOT LOG PASSWORDS
         throw "Mismatch username/password combination";
     }
+}
+
+function logout(username) {
+    delete ACTIVE_USERS[username];
 }
 
 server.listen(8844);

@@ -109,3 +109,7 @@ function lock() {
 function unlock() {
     locked = false;
 }
+
+window.onload = () => {
+    document.getElementById('signup').href += document.location.search;
+}
