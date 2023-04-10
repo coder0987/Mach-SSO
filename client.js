@@ -1,5 +1,8 @@
 let locked = false;
 let userNameToken;
+//Replace machtarok.com with your trusted website when self hosting
+const VALID_OPENERS = {'https://machtarok.com': true}
+
 
 function reqListener() {
     unlock();
@@ -30,10 +33,10 @@ function setStatus(to,reason) {
             lsd.classList.remove('fail');
             ls.innerHTML = 'Success!';
             let params = new URLSearchParams(document.location.search);
-            let redirect = params.get('redirect'); //is the destination URL
-            if (redirect) {
+            let redirect = params.get('redirect'); //is the opener URL
+            if (redirect && VALID_OPENERS[redirect]) {
                 ls.innerHTML += ' Redirecting...';
-                window.opener.postMessage(userNameToken, 'https://machtarok.com');
+                window.opener.postMessage(userNameToken, redirect);
                 window.close();
             }
             break;

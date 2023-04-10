@@ -29,8 +29,10 @@ exit;
 ```
 node _server.js p@sSw0rD
 ```
-5. Connect a reverse proxy and enable HTTPS (Apache, NGinx, BoringProxy, etc.)
+5. Connect a reverse proxy and enable HTTPS (Apache, NGinx, BoringProxy, etc.)\
 This final step is necessary as MachSSO automatically rejects all HTTP requests
+6. Trust your project\
+Edit index.html `VALID_OPENERS` to include your website's domain name instead of machtarok.com
 
 ### How It Works
 
