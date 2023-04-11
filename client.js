@@ -14,6 +14,7 @@ function reqListener() {
         //Login successful
         //Add session cookie
         userNameToken = document.getElementById('username').value + ':' + this.response;
+        localStorage.setItem('machsso',userNameToken);
         setStatus('success');
     }
 }
@@ -62,6 +63,9 @@ function login() {
     }
     let authString;
     try {
+        if (/\s/.test(username)) {
+            throw "Username contains whitespace";
+        }
         authString = btoa(username + ':' + password);
     } catch (err) {
         setStatus('fail','Invalid characters.');
@@ -81,13 +85,19 @@ function signup() {
     let username = document.getElementById('username').value;
     let password = document.getElementById('password').value;
     let verifyPassword = document.getElementById('passwordVerify').value;
-    if (password != verifyPassword) {return;}
+    if (password != verifyPassword) {
+        setStatus('fail','Password and Password Verification must match');
+        return;
+    }
     if (username.length == 0 || username.length > 64 || password.length < 12 || password.length > 64) {
         setStatus('fail','Username and password must be less than 64 characters long. Password must be at least 12 characters long.');
         return;
     }
     let authString;
     try {
+        if (/\s/.test(username)) {
+            throw "Username contains whitespace";
+        }
         authString = btoa(username + ':' + password);
     } catch (err) {
         setStatus('fail','Invalid characters.');
@@ -110,6 +120,30 @@ function unlock() {
     locked = false;
 }
 
+function clearSaves() {
+    localStorage.clear();
+}
+
+function autoSignInCallback() {
+    unlock();
+    if (this.status == 200) {
+        setStatus('success');
+    } else {
+        userNameToken = '';
+        clearSaves();
+        setStatus('fail','Auto Sign-In failed');
+    }
+}
+
 window.onload = () => {
     document.getElementById('signup').href += document.location.search;
+    if (localStorage.getItem('machsso')) {
+        lock();
+        userNameToken = localStorage.getItem('machsso');
+        const req = new XMLHttpRequest();
+        req.addEventListener("load", autoSignInCallback);
+        req.open("POST", "/verify", true);
+        req.setRequestHeader("Authorization", userNameToken);
+        req.send();
+    }
 }

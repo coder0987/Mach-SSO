@@ -125,6 +125,7 @@ function verifyUser(req, res) {
     let username, token;
     try {
         [username, token] = req.headers.authorization.split(':');
+        username = username.toLowerCase();
         if (username.length == 0 || username.length > 64 || !token) {
             throw "Username or password length incorrect";
         }
