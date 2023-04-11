@@ -124,6 +124,10 @@ function clearSaves() {
     localStorage.clear();
 }
 
+function signOut() {
+    //TODO tell the server to delete my token
+}
+
 function autoSignInCallback() {
     unlock();
     if (this.status == 200) {
