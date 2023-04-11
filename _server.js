@@ -155,6 +155,10 @@ const server = http.createServer((req, res) => {
         res.end('400 Unsupported Protocol');
     }
 
+    res.setHeader(
+        'Content-Security-Policy', "default-src 'self'; script-src 'self' https://code.jquery.com/jquery-1.12.4.min.js https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js; style-src 'self' https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css; font-src 'self'; img-src 'self'; frame-src 'self'"
+    );
+
     if (req.method == 'GET') {
 
         /*Ignore all arbitrary file requests. The only files returned are:
