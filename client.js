@@ -130,6 +130,14 @@ function signOut() {
     //TODO tell the server to delete my token
     setStatus('inform','Signing out...');
     document.getElementById('signOut').setAttribute('hidden','hidden');
+    let params = new URLSearchParams(document.location.search);
+    let redirect = params.get('redirect'); //is the opener URL
+    if (redirect && VALID_OPENERS[redirect]) {
+        window.opener.postMessage('signOut', redirect);
+        window.close();
+    } else if (redirect) {
+        console.log(redirect + ' is not a valid opener');
+    }
 }
 
 function autoSignInCallback() {
