@@ -158,6 +158,11 @@ if (location.protocol !== 'https:') {
 
 window.onload = () => {
     document.getElementById('signup').href += document.location.search;
+    document.getElementById('signOut').addEventListener('click',function() {
+        clearSaves();
+        signOut();
+    });
+    document.getElementById('form').addEventListener('submit',(event) => {login(); event.preventDefault(); return false;});
     let params = new URLSearchParams(document.location.search);
     let shouldSignOut = params.get('signOut');
     if (shouldSignOut) {
