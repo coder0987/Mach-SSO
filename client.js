@@ -126,6 +126,8 @@ function clearSaves() {
 
 function signOut() {
     //TODO tell the server to delete my token
+    setStatus('');
+    document.getElementById('signOut').setAttribute('hidden','hidden');
 }
 
 function autoSignInCallback() {
@@ -139,6 +141,11 @@ function autoSignInCallback() {
     }
 }
 
+//Force HTTPS client-side. This is likely redundant with server-side HTTPS enforcement
+if (location.protocol !== 'https:') {
+    location.replace('https:${location.href.substring(location.protocol.length)}');
+}
+
 window.onload = () => {
     document.getElementById('signup').href += document.location.search;
     if (localStorage.getItem('machsso')) {
@@ -149,5 +156,6 @@ window.onload = () => {
         req.open("POST", "/verify", true);
         req.setRequestHeader("Authorization", userNameToken);
         req.send();
+        document.getElementById('signOut').removeAttribute('hidden');
     }
 }
