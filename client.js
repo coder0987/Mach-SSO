@@ -44,6 +44,8 @@ function setStatus(to,reason) {
             }
             break;
         case 'inform':
+            lsd.classList.remove('fail');
+            lsd.classList.remove('success');
             ls.innerHTML = reason;
             break;
         default:
@@ -126,7 +128,7 @@ function clearSaves() {
 
 function signOut() {
     //TODO tell the server to delete my token
-    setStatus('');
+    setStatus('inform','Signing out...');
     document.getElementById('signOut').setAttribute('hidden','hidden');
 }
 
@@ -148,6 +150,12 @@ if (location.protocol !== 'https:') {
 
 window.onload = () => {
     document.getElementById('signup').href += document.location.search;
+    let params = new URLSearchParams(document.location.search);
+    let shouldSignOut = params.get('signOut');
+    if (shouldSignOut) {
+        clearSaves();
+        signOut();
+    }
     if (localStorage.getItem('machsso')) {
         lock();
         userNameToken = localStorage.getItem('machsso');
