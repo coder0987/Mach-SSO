@@ -21,9 +21,18 @@ const RESERVED = {
     'prever': true,
     'valat': true,
     'contra': true,
+    'iote': true,
     'povenost': true,
+    'povinnost': true,
+    'skyz': true,
+    'pagat': true,
+    'mond': true,
+    'mund': true,
+    'you': true,
     'the': true,
-    'a': true
+    'a': true,
+    'error': true,
+    'success': true
 };
 
 if (!PASSWORD) {
@@ -135,9 +144,9 @@ function verifyUser(req, res) {
         return res.end();
     }
     if (ACTIVE_USERS[username] && ACTIVE_USERS[username].token == token) {
-        console.log('User verified: ' + username);
         clearTimeout(ACTIVE_USERS[username].timeout)
         ACTIVE_USERS[username].timeout = setTimeout(logout,30*60*1000,username);
+        console.log('User verified: ' + username);
         res.writeHead(200);
         return res.end();
     } else {
@@ -155,12 +164,10 @@ const server = http.createServer((req, res) => {
         res.end('400 Unsupported Protocol');
     }
 
-    res.setHeader(
-        'Content-Security-Policy', "default-src 'self'; script-src 'self' https://code.jquery.com/jquery-1.12.4.min.js https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js; style-src 'self' https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css; font-src 'self'; img-src 'self'; frame-src 'self'"
-    );
-
     if (req.method == 'GET') {
-
+        res.setHeader(
+            'Content-Security-Policy', "default-src 'self'; script-src 'self' https://code.jquery.com/jquery-1.12.4.min.js https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js; style-src 'self' https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css; font-src 'self'; img-src 'self'; frame-src 'self'"
+        );
         /*Ignore all arbitrary file requests. The only files returned are:
           - index.html
           - favicon.ico
