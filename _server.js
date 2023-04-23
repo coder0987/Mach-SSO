@@ -161,7 +161,7 @@ const server = http.createServer((req, res) => {
     if (req.headers['x-forwarded-proto'] != 'https') {
         res.writeHead(400);
         res.write('Insecure connection detected. Use https.\n');
-        res.end('400 Unsupported Protocol');
+        return res.end('400 Unsupported Protocol');
     }
 
     if (req.method == 'GET') {
