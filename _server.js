@@ -53,7 +53,7 @@ const ACTIVE_USERS = {};
 function User(username, token) {
     this.username = username;
     this.token = token;
-    this.timeout = setTimeout(logout,30*24*60*60*1000,this.username);//Logout after 30 days of inactivity
+    //this.timeout = setTimeout(logout,30*24*60*60*1000,this.username);//Logout after 30 days of inactivity
 }
 
 function postLogin(req, res) {
