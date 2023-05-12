@@ -35,6 +35,8 @@ const RESERVED = {
     'success': true
 };
 
+const MIN_PASS_LENGTH = 4;
+
 if (!PASSWORD) {
     throw 'No password was given';
 }
@@ -51,7 +53,7 @@ const ACTIVE_USERS = {};
 function User(username, token) {
     this.username = username;
     this.token = token;
-    this.timeout = setTimeout(logout,30*60*1000,this.username);//Logout after 30 minutes of inactivity
+    this.timeout = setTimeout(logout,30*24*60*60*1000,this.username);//Logout after 30 days of inactivity
 }
 
 function postLogin(req, res) {
@@ -65,7 +67,7 @@ function postLogin(req, res) {
         const base64Credentials = req.headers.authorization.split(' ')[1];
         const credentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
         [username, password] = credentials.split(':');
-        if (username.length == 0 || username.length > 64 || password.length < 12 || password.length > 64) {
+        if (username.length == 0 || username.length > 64 || password.length < MIN_PASS_LENGTH || password.length > 64) {
             throw "Username or password length incorrect";
         }
 
@@ -76,7 +78,7 @@ function postLogin(req, res) {
     }
     //Someone is trying to log in
     //Username: must be an alphanumeric string of 5-64 characters, - and _ allowed
-    //Password: must be 12-64 characters
+    //Password: must be MIN_PASS_LENGTH-64 characters
     //OTP: must be a 6-digit number or null
     signIn(username, password).then((token) => {
         //Success
@@ -102,7 +104,7 @@ function postSignup(req, res) {
         const base64Credentials = req.headers.authorization.split(' ')[1];
         const credentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
         [username, password] = credentials.split(':');
-        if (username.length == 0 || username.length > 64 || password.length < 12 || password.length > 64) {
+        if (username.length == 0 || username.length > 64 || password.length < MIN_PASS_LENGTH || password.length > 64) {
             throw "Username or password length incorrect";
         }
 
@@ -205,6 +207,9 @@ const server = http.createServer((req, res) => {
                 break;
             case '/client.js':
                 filename = 'client.js';
+                break;
+            case '/sign-up.js':
+                filename = 'sign-up.js';
         }
 
 
@@ -258,7 +263,7 @@ const server = http.createServer((req, res) => {
 async function createUser(username, password) {
     password = password.normalize();
     username = username.toLowerCase();
-    if (password.length < 12) {
+    if (password.length < MIN_PASS_LENGTH) {
         throw "Short password";
     }
     if (/\s/.test(username)) {

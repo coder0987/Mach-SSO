@@ -55,32 +55,6 @@ function setStatus(to,reason) {
     }
 }
 
-function login() {
-    if (locked) {return;}
-    let username = document.getElementById('username').value;
-    let password = document.getElementById('password').value;
-    if (username.length == 0 || username.length > 64 || password.length < 4 || password.length > 64) {
-        setStatus('fail','Username and password must be less than 64 characters long. Password must be at least 4 characters long.');
-        return;
-    }
-    let authString;
-    try {
-        if (/\s/.test(username)) {
-            throw "Username contains whitespace";
-        }
-        authString = btoa(username + ':' + password);
-    } catch (err) {
-        setStatus('fail','Invalid characters.');
-        return;
-    }
-    lock();
-    const req = new XMLHttpRequest();
-    req.addEventListener("load", reqListener);
-    req.open("POST", "/login", true);
-    req.setRequestHeader("Authorization", 'Basic ' + authString);
-    req.send();
-}
-
 function signup() {
     console.log('Sign up attempt...');
     if (locked) {return;}
@@ -140,43 +114,11 @@ function signOut() {
     }
 }
 
-function autoSignInCallback() {
-    unlock();
-    if (this.status == 200) {
-        setStatus('success');
-    } else {
-        userNameToken = '';
-        clearSaves();
-        setStatus('fail','Auto Sign-In failed');
-    }
-}
-
 //Force HTTPS client-side. This is likely redundant with server-side HTTPS enforcement
 if (location.protocol !== 'https:') {
     location.replace('https:${location.href.substring(location.protocol.length)}');
 }
 
 window.onload = () => {
-    document.getElementById('signup').href += document.location.search;
-    document.getElementById('signOut').addEventListener('click',function() {
-        clearSaves();
-        signOut();
-    });
-    document.getElementById('form').addEventListener('submit',(event) => {login(); event.preventDefault(); return false;});
-    let params = new URLSearchParams(document.location.search);
-    let shouldSignOut = params.get('signOut');
-    if (shouldSignOut) {
-        clearSaves();
-        signOut();
-    }
-    if (localStorage.getItem('machsso')) {
-        lock();
-        userNameToken = localStorage.getItem('machsso');
-        const req = new XMLHttpRequest();
-        req.addEventListener("load", autoSignInCallback);
-        req.open("POST", "/verify", true);
-        req.setRequestHeader("Authorization", userNameToken);
-        req.send();
-        document.getElementById('signOut').removeAttribute('hidden');
-    }
+    document.getElementById('form').addEventListener('submit',(event) => {signup(); event.preventDefault(); return false;});
 }
