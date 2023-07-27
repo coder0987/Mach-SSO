@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 //This is the back-end server file for the SSO
 const http = require('http');
 const url = require('url');
@@ -8,11 +10,12 @@ const express = require('express');
 const mariadb = require('mariadb');
 const argon2 = require('argon2');
 const crypto = require('crypto');
+require('dotenv').config();
 
 const app = express();
 app.use(parser.json);//For processing JSON POST calls
 
-const PASSWORD = process.argv[2];
+const PASSWORD = process.env.PASSWORD;
 
 const limiter = [];
 const RESERVED = {
@@ -42,7 +45,8 @@ if (!PASSWORD) {
 }
 
 const pool = mariadb.createPool({
-     //Host: localhost, port: 3306
+     host: '127.0.0.1',
+     port: 3306,
      user:'MachSSO',
      database: 'machsso',
      password: PASSWORD,
@@ -88,6 +92,7 @@ function postLogin(req, res) {
         return res.end();
     }).catch((err) => {
         //Failure
+        console.log('User failed to sign in: ' + err);
         res.writeHead(403);
         return res.end();
     });
@@ -121,6 +126,7 @@ function postSignup(req, res) {
         return res.end();
     }).catch((err) => {
         //Failure
+        console.log('User failed to sign up: ' + err);
         console.log(err);
         res.writeHead(403);
         return res.end();

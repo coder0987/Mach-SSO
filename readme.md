@@ -23,15 +23,26 @@ CREATE USER 'MachSSO'@'localhost' IDENTIFIED BY 'p@sSw0rD';
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'MachSSO'@'localhost';
 GRANT SELECT ON auth TO 'MachSSO'@'localhost';
 GRANT INSERT ON auth TO 'MachSSO'@'localhost';
+FLUSH PRIVILEGES;
 exit;
 ```
-4. Run the server
+4. Create a .env File
+
+Create a file named ``.env`` with the text
+``
+PASSWORD=p@sSw0rD
+``
+Where p@sSw0rD is your password
+
+It's important to keep this file safe and prevent others from accessing it
+
+5. Run the server
 ```
-node _server.js p@sSw0rD
+node _server.js
 ```
-5. Connect a reverse proxy and enable HTTPS (Apache, NGinx, BoringProxy, etc.)\
+6. Connect a reverse proxy and enable HTTPS (Apache, NGinx, BoringProxy, etc.)\
 This final step is necessary as MachSSO automatically rejects all HTTP requests
-6. Trust your project\
+7. Trust your project\
 Edit index.html `VALID_OPENERS` to include your website's domain name instead of machtarok.com
 
 ### How It Works
