@@ -10,10 +10,10 @@ function reqListener() {
         //Login failed
         console.log('Login failed!');
         setStatus('fail');
-    } else {
+    } else if (this.status == 200) {
         //Login successful
         //Add session cookie
-        userNameToken = document.getElementById('username').value + ':' + this.response;
+        userNameToken = document.getElementById('username').value + ':' + this.response + ':new';
         localStorage.setItem('machsso',userNameToken);
         setStatus('success');
     }
