@@ -57,7 +57,7 @@ const ACTIVE_USERS = {};
 function User(username, token) {
     this.username = username;
     this.token = token;
-    //this.timeout = setTimeout(logout,30*24*60*60*1000,this.username);//Logout after 30 days of inactivity
+    //this.timeout = setTimeout(logout,30*24*60*60*1000,this.token);//Logout after 30 days of inactivity
 }
 
 function postLogin(req, res) {
@@ -151,9 +151,9 @@ function verifyUser(req, res) {
         res.writeHead(403);
         return res.end();
     }
-    if (ACTIVE_USERS[username] && ACTIVE_USERS[username].token == token) {
-        clearTimeout(ACTIVE_USERS[username].timeout)
-        ACTIVE_USERS[username].timeout = setTimeout(logout,30*60*1000,username);
+    if (ACTIVE_USERS[token] && ACTIVE_USERS[token].username == username) {
+        //clearTimeout(ACTIVE_USERS[token].timeout)
+        //ACTIVE_USERS[token].timeout = setTimeout(logout,30*60*1000,token);
         console.log('User verified: ' + username);
         res.writeHead(200);
         return res.end();
@@ -326,7 +326,7 @@ async function signIn(username, password, OTP) {
     if (await argon2.verify(infoFromDatabase[0].password, password)) {
         //Password match. Create a session token for the user
         let sessionId = crypto.randomBytes(128).toString('hex');
-        ACTIVE_USERS[username] = new User(username, sessionId);
+        ACTIVE_USERS[sessionId] = new User(username, sessionId);
         return sessionId;
     } else {
         // password did not match
@@ -336,8 +336,8 @@ async function signIn(username, password, OTP) {
     }
 }
 
-function logout(username) {
-    delete ACTIVE_USERS[username];
+function logout(sessionId) {
+    delete ACTIVE_USERS[sessionId];
 }
 
 server.listen(8844);
